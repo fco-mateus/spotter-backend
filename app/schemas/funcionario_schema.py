@@ -6,6 +6,11 @@ class FuncionarioCreate(BaseModel):
     cpf: str
     telefone: str
 
+class FuncionarioUpdate(BaseModel):
+    nome: str
+    cpf: str
+    telefone: str
+
 class FuncionarioOut(BaseModel):
     matricula: str
     nome: str

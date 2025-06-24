@@ -5,7 +5,7 @@ CREATE DATABASE spotter;
 \c spotter;
 
 -- Criação da tabela funcionario
-CREATE TABLE funcionario (
+CREATE TABLE funcionarios (
     matricula VARCHAR PRIMARY KEY,
     nome VARCHAR NOT NULL,
     cpf VARCHAR(11) UNIQUE NOT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE veiculos (
     tipo_veiculo VARCHAR NOT NULL CHECK (tipo_veiculo IN ('carro', 'moto')),
     marca VARCHAR NOT NULL,
     matricula VARCHAR,
-    CONSTRAINT fk_funcionario FOREIGN KEY (matricula) REFERENCES funcionario (matricula)
+    CONSTRAINT fk_funcionarios FOREIGN KEY (matricula) REFERENCES funcionarios (matricula)
 );
 
 -- Criação da tabela ocorrencias
@@ -34,7 +34,7 @@ CREATE TABLE ocorrencias (
 );
 
 -- Inserção de funcionários
-INSERT INTO funcionario (matricula, nome, cpf, telefone) VALUES
+INSERT INTO funcionarios (matricula, nome, cpf, telefone) VALUES
 ('123', 'Alice Silva', '11111111111', '11999999999'),
 ('456', 'Bruno Souza', '22222222222', '11988888888');
 
