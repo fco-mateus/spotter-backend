@@ -15,7 +15,7 @@ class TipoVeiculo(str, enum.Enum):
 # Tabela Funcionário
 # ============================
 class Funcionario(Base):
-    __tablename__ = "funcionario"
+    __tablename__ = "funcionarios"
 
     matricula = Column(String, primary_key=True, index=True)
     nome = Column(String, nullable=False)
@@ -36,7 +36,7 @@ class Veiculo(Base):
     cor = Column(String, nullable=False)
     tipo_veiculo = Column(Enum(TipoVeiculo), nullable=False)
     marca = Column(String, nullable=False)
-    matricula = Column(String, ForeignKey("funcionario.matricula"))
+    matricula = Column(String, ForeignKey("funcionarios.matricula"))
 
     # Relacionamento com funcionário
     funcionario = relationship("Funcionario", back_populates="veiculos")

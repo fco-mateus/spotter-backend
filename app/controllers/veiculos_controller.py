@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from app.schemas.veiculo_schema import VeiculoCreate, VeiculoUpdate, VeiculoOut
 from app.services import veiculos_service
 from app.config.database import get_db
+from app.utils.file_reader import ler_arquivo
 
 router = APIRouter(prefix="/veiculos", tags=["Veículos"])
 
@@ -34,3 +35,24 @@ def deletar(placa: str, db: Session = Depends(get_db)):
     if not veiculo_deletado:
         raise HTTPException(status_code=404, detail="Veículo não encontrado")
     return {"mensagem": "Veículo deletado com sucesso"}
+
+@router.post("/importar")
+def importar_veiculos(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    df = ler_arquivo(file)
+
+    colunas_esperadas = {'placa', 'modelo', 'cor', 'tipo_veiculo', 'marca', 'matricula'}
+    if not colunas_esperadas.issubset(df.columns):
+        raise HTTPException(status_code=400, detail=f"Arquivo inválido. As colunas obrigatórias são: {colunas_esperadas}")
+
+    for _, row in df.iterrows():
+        veiculo_data = VeiculoCreate(
+            placa=str(row['placa']),
+            modelo=str(row['modelo']),
+            cor=str(row['cor']),
+            tipo_veiculo=row['tipo_veiculo'],  # Enum já aceita string diretamente
+            marca=str(row['marca']),
+            matricula=str(row['matricula'])
+        )
+        veiculos_service.criar_veiculo(db, veiculo_data)
+
+    return {"mensagem": "Veículos importados com sucesso", "quantidade": len(df)}
