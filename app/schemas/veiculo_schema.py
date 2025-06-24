@@ -13,6 +13,13 @@ class VeiculoCreate(BaseModel):
     marca: str
     matricula: str
 
+class VeiculoUpdate(BaseModel):
+    modelo: str
+    cor: str
+    tipo_veiculo: TipoVeiculo
+    marca: str
+    matricula: str
+
 class VeiculoOut(BaseModel):
     placa: str
     modelo: str
