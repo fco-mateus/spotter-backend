@@ -1,0 +1,6 @@
+id,criado_em,motivo,foto,placa
+1,2025-06-22 08:30:00,Estacionamento irregular,https://bucket-ficticio.s3.amazonaws.com/ocorrencia1.jpg,ABC1234
+2,2025-06-22 09:15:00,Veículo em vaga não permitida,https://bucket-ficticio.s3.amazonaws.com/ocorrencia2.jpg,DEF5678
+3,2025-06-22 10:45:00,Placa não autorizada,https://bucket-ficticio.s3.amazonaws.com/ocorrencia3.jpg,GHI9012
+4,2025-06-22 11:20:00,Estacionamento em vaga de deficientes,https://bucket-ficticio.s3.amazonaws.com/ocorrencia4.jpg,JKL3456
+5,2025-06-22 12:05:00,Tempo máximo de permanência excedido,https://bucket-ficticio.s3.amazonaws.com/ocorrencia5.jpg,MNO7890
