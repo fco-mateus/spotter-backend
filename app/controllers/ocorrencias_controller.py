@@ -4,30 +4,20 @@ from sqlalchemy.orm import Session
 from app.services import ocorrencias_service
 from app.config.database import get_db
 from typing import List
+from app.utils.convert_base64 import converter_imagem_para_base64_formatado
 import uuid
-import base64
-import httpx
+
 
 router = APIRouter(prefix="/ocorrencias", tags=["Ocorrencias"])
 
-@router.post("/ocr")
+@router.post("/ocr/easyocr")
 async def processar_ocr(file: UploadFile = File(...)):
-    # Lê o arquivo e converte para base64
-    conteudo = await file.read()
-    imagem_base64 = base64.b64encode(conteudo).decode('utf-8')
+    placa = await ocorrencias_service.enviar_para_ocr(file, "easyocr")
+    return {"placa_detectada": placa}
 
-    # Mock da chamada ao OCR (simulando)
-    ocr_payload = {"imagem_base64": imagem_base64}
-
-    # Como o OCR ainda não existe, simule a resposta
-    # Quando tiver a API pronta, você pode fazer:
-    # async with httpx.AsyncClient() as client:
-    #     response = await client.post("http://ocr-server/endpoint", json=ocr_payload)
-    #     placa = response.json().get("placa")
-
-    # Simulação de resposta
-    placa = "ABC1234"
-
+@router.post("/ocr/pytesseract")
+async def processar_ocr(file: UploadFile = File(...)):
+    placa = await ocorrencias_service.enviar_para_ocr(file, "pytesseract")
     return {"placa_detectada": placa}
 
 @router.post("/")
