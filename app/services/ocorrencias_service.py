@@ -30,9 +30,9 @@ async def enviar_para_ocr(file, ocr_engine):
     imagem_base64_formatada = converter_imagem_para_base64_formatado(conteudo, mime_type)
     ocr_payload = {"image": imagem_base64_formatada}
 
-    url = f"http://ocr:5000/{ocr_engine}"
+    url = f"http://ocr:5000/ocr/{ocr_engine}"
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=120.0) as client:
         response = await client.post(url, json=ocr_payload)
         data = response.json()
 
