@@ -1,9 +1,3 @@
--- Criação do banco (caso esteja usando PostgreSQL direto no servidor)
-CREATE DATABASE spotter;
-
--- Conectar no banco criado (se estiver usando psql)
-\c spotter;
-
 -- Criação da tabela funcionario
 CREATE TABLE funcionarios (
     matricula VARCHAR PRIMARY KEY,
