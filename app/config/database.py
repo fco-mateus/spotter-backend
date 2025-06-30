@@ -2,11 +2,15 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import os
 
-# Para aplicação na máquina: 
-# DATABASE_URL = DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/spotter"
+DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
+if not DATABASE_PASSWORD:
+    raise Exception("DATABASE_PASSWORD não configurada!")
 
-# Para aplicação e banco dentro de container:
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@postgres-spotter:5432/spotter")
+DATABASE_ENDPOINT = os.getenv("DATABASE_ENDPOINT")
+if not DATABASE_ENDPOINT:
+    raise Exception("DATABASE_ENDPOINT não configurado!")
+
+DATABASE_URL = f"postgresql://postgres:{DATABASE_PASSWORD}@{DATABASE_ENDPOINT}"
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

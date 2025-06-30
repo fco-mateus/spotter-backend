@@ -1,58 +1,29 @@
-## API do projeto Spotter.
+
+# API do projeto Spotter
 
 Esse projeto é o back-end do projeto Spotter. Serve para comunicação entre front-end, OCR, S3 e banco de dados.
 
-### Modos de execução:
-- Para executar a API localmente, instale as dependências e execute: `uvicorn app.main:app --reload`
-Dessa forma, garanta que no arquivo app/config/database.py, a string de conexão esteja configurada corretamente para o banco de dados em container:
-`DATABASE_URL = DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/spotter"`
+## Setup do ambiente (RDS e S3 em nuvem e API e OCR local)
 
-Altere também a comunicação com o container de OCR, caso rode essa API sem estar em container.
-
-- Para executar a API em container localmente, faça o build da imagem com: `docker build -t spotter-backend .` ou baixe a imagem do Dockerhub `fcomateus1/spotter-backend`.
-Dessa forma, a string de conexão com o banco é passada via variável de ambiente para o container, no comando:
-`DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@postgres-spotter:5432/spotter")`.
-Lembre-se de colocar o nome do container de banco exatamente como está na string, para que a conexão seja possível.
-
-OBS: Para rodar a API, banco de dados e container de OCR todos se enxergando pelo __nome do container__, é **necessário** criar uma rede personalizada no Docker com `docker network create <nome_da_rede>` e lançar os containers todos nessa rede, com o parâmetro `--network <nome_da_rede>` no comando `docker run`.
-
-### Iniciando container da aplicação
-
-Para executar a aplicação:
+- Baixe a [image da API](https://hub.docker.com/r/fcomateus1/spotter-backend) na versão 1.3.0, que está configurada para falar com RDS e S3.
+- Baixe a [imagem do OCR](https://hub.docker.com/r/endmrf/ocr-license-plates).
+- Crie uma rede virtual do Docker, por exemplo, `rede-spotter`, com o comando `docker network`. Tanto o container da API quando do OCR rodarão nessa rede. Esse passo é necessário para que os containers possam se enxergar pelo `nome do container` e, dessa forma, possam se falar.
+- Baixe o [projeto Terraform](https://github.com/fco-mateus/spotter-infra) para provisionamento do RDS e S3 e **leia seu README**. Podem haver ajustes que devem ser feitos para configuração correta do ambiente.
+- Acesse sua conta da AWS e crie um usuário com permissão para que o projeto Terraform possa provisionar a infraestrutura. Pode-se colocar a política _AdministratorAccess_ para configuração mais rápida. Crie as chaves de acesso desse usuário e configure no terminal que irá utilizar para criar a infraestrutura.
+- Crie também um usuário para a **API**. Para configuração mais rápida, esse usuário pode ter as políticas _AmazonRDSFullAccess_ e _AmazonS3FullAccess_. Crie as chaves de acesso desse usuário e salve-as, pois você terá que configurá-la no **.env** desse projeto, para que o container possa interagir com a AWS.
+- Provisione a infraestrutura com `terraform apply`
+- Preencha as informações faltantes no **.env** com as informações da infraestrutura provisionada
+- Execute a API com:
 ```
-docker run --name spotter-backend -p 8000:8000 --env DATABASE_URL=postgresql://postgres:postgres@postgres-spotter:5432/spotter --network rede-spotter spotter-backend
+docker run --name spotter-backend-cloud -p 8000:8000 --env-file .env --network rede-spotter fcomateus1/spotter-backend:v1.3.0
 ```
-
-Veja o Swagger da API em /docs.
-
-Para testar localmente, rode o banco e popule um banco localmente com os seguintes comandos:
-
-### Iniciando container do banco de dados local para teste
-Rodar o container do banco:
-```
-docker run --name postgres-spotter --network rede-spotter \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=spotter \
-  -p 5432:5432 \
-  -d postgres
-```
-
-Script de criação de tabelas do banco:
-```
-docker exec -i postgres-spotter psql -U postgres -d spotter < database.sql
-```
-
-Para popular o banco com os mocks, utilize os endpoints de inserção em massa de funcionários, veículos e ocorrências **nessa ordem**, por conta das relações entre as entidades. Caso insira uma ocorrência que não tenha veículo, dará erro.
-
-Acessar container do banco e entrar no postgres:
-```
-docker exec -it postgres-spotter psql -U postgres -d spotter
-```
-
-### Rodando o ambiente integrado
-Execute a aplicação de OCR na mesma rede, fazendo o bind da porta 5000 do container para a porta 5000 do host e dê o nome do container de __ocr__, pois essa aplicação está configurada para interagir com o container de OCR. Algo como:
-
+- Execute o OCR com:
 ```
 docker run --name ocr -p 5000:5000 --network rede-spotter endmrf/ocr-license-plates
 ```
+OBS: O nome do container **deve** ser `ocr`, pois é como a **imagem da API** está configurada para chamar o container de OCR.
+- Acesse `http://localhost:8000/docs` para ver o Swagger da API e testar os endpoints
+OBS: Caso vá testar a detecção do OCR, use o endpoint `/easyocr`, pois tem mais chances de detecção.
+- Acesse o banco de dados via algum cliente (CLI, DBeaver, PGAdmin...) e rode o script `database.sql` para inserir dados para teste.
+
+Dessa forma, é possível configurar o ambiente para testar o OCR e a API com banco de dados e armazenamento de objetos na nuvem.

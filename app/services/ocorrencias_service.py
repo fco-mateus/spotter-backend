@@ -2,18 +2,35 @@ from app.repositories import ocorrencias_repository
 from fastapi import HTTPException
 from datetime import datetime
 from app.utils.convert_base64 import converter_imagem_para_base64_formatado
+import boto3
 import httpx
 import uuid
+import os
 
-def criar_ocorrencia(db, placa, motivo, url_imagem):
-    dados_ocorrencia = {
-        "id": str(uuid.uuid4()),
-        "criado_em": datetime.now(),
-        "motivo": motivo,
-        "foto": url_imagem,
-        "placa": placa
-    }
-    return ocorrencias_repository.inserir_ocorrencia(db, dados_ocorrencia)
+BUCKET_NAME = os.getenv("BUCKET_NAME")
+if not BUCKET_NAME:
+    raise Exception("BUCKET_NAME não configurado!")
+
+async def criar_ocorrencia(db, placa, motivo, file):
+    conteudo = await file.read()
+    nome_arquivo = f"{uuid.uuid4()}.jpg"
+
+    s3 = boto3.client('s3')
+
+    try:
+        s3.put_object(
+            Bucket=BUCKET_NAME,
+            Key=nome_arquivo,
+            Body=conteudo,
+            ContentType=file.content_type
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao enviar imagem para S3: {str(e)}")
+
+    url_imagem = f"https://{BUCKET_NAME}.s3.amazonaws.com/{nome_arquivo}"
+
+    nova_ocorrencia = ocorrencias_repository.inserir_ocorrencia(db, placa, motivo, url_imagem)
+    return nova_ocorrencia
 
 def listar_ocorrencias(db):
     return ocorrencias_repository.listar_ocorrencias(db)

@@ -27,22 +27,7 @@ async def criar_ocorrencia(
     motivo: str = Form(...),
     db: Session = Depends(get_db)
 ):
-    # Lê o conteúdo da imagem
-    conteudo = await file.read()
-    nome_arquivo = f"{uuid.uuid4()}.jpg"
-
-    # Simulação de upload no S3
-    url_imagem = f"https://bucket-ficticio.s3.amazonaws.com/{nome_arquivo}"
-
-    # Quando tiver o bucket real, você pode usar:
-    # import boto3
-    # s3 = boto3.client('s3')
-    # bucket_name = 'nome-do-seu-bucket'
-    # s3.put_object(Bucket=bucket_name, Key=nome_arquivo, Body=conteudo, ContentType=file.content_type)
-    # url_imagem = f"https://{bucket_name}.s3.amazonaws.com/{nome_arquivo}"
-
-    nova_ocorrencia = ocorrencias_service.criar_ocorrencia(db, placa, motivo, url_imagem)
-
+    nova_ocorrencia = await ocorrencias_service.criar_ocorrencia(db, placa, motivo, file)
     return {"mensagem": "Ocorrência registrada com sucesso", "ocorrencia": nova_ocorrencia}
 
 @router.get("/", response_model=List[OcorrenciaResponse])
